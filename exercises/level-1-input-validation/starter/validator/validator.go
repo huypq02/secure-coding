@@ -1,8 +1,8 @@
-package utils
+package validator
 
 import (
-	"fmt"
-	"net/url"
+	"errors"
+	"net/mail"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -10,14 +10,27 @@ import (
 
 // Allow-list regexp for username
 var (
-	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-.]{2,31}$`)
+	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_\-.]{2,31}$`)
 )
 
-// // Validate email by following RFC standard
-// func ValidateEmail(email string) error {
-// 	email := SanitizeInput(email)
+// Validate email by following RFC standard
+func ValidateEmail(email string) error {
+	// Sanitize the input of email
+	email = SanitizeInput(email)
 
-// }
+	// Parse the mail format
+	mail, err := mail.ParseAddress(email)
+	if err != nil {
+		return errors.New("invalid email format")
+	}
+
+	// Remove special characters in the mail
+	if strings.ContainsAny(mail.Address, "<>()[]\\,;:\" \t\r\n") {
+		return errors.New("email contains special characters")
+	}
+
+	return nil
+}
 
 // func ValidateUsername(email string) error {
 
@@ -29,10 +42,6 @@ var (
 
 // Handle canonicalization, remove null byte, standardize UTF-8
 func SanitizeInput(input string) string {
-	// Encode URL if capable
-	input, _ = url.QueryUnescape(input)
-	// TODO: remove later
-	fmt.Println("URL-Encoded ", input)
 	// Remove null byte
 	input = strings.ReplaceAll(input, "\x00", "")
 	// Standardize UTF-8
