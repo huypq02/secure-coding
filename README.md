@@ -581,19 +581,61 @@ func RateLimitMiddleware(limiter *rate.Limiter) func(http.Handler) http.Handler 
 
 ## Project Structure
 
-This repository is organized by security topic:
+This repository is organized as a comprehensive secure coding learning platform:
 
 ```
 secure-coding/
-├── input-validation/      # Input validation examples
-│   ├── main.go
-│   └── utils/
-│       └── validator.go
-├── authentication/        # Auth and password management (coming soon)
-├── cryptography/         # Cryptographic practices (coming soon)
-├── database/             # Database security (coming soon)
-└── README.md             # This file
+├── README.md              # Main documentation
+├── go.work                # Optional: workspace for multiple go.mod files
+├── .github/
+│   └── workflows/
+│       ├── ci.yml         # Continuous integration pipeline
+│       └── publish.yml    # Publishing workflow
+├── tools/                 # Scripts, installers, dev tools
+│   ├── bin/
+│   └── make.sh
+├── hack/                  # Helper scripts for dev (db init, seed data)
+├── docs/                  # General guides, rubrics, slides
+├── infra/                 # Infrastructure as code
+│   ├── docker/            # Docker compose files
+│   └── k8s/               # Kubernetes manifests, Terraform
+├── pkg/                   # Reusable libraries (can be consumed across levels)
+│   ├── logger/            # Structured logging utilities
+│   ├── auth/              # Authentication helpers
+│   └── crypto/            # Cryptographic utilities
+├── internal/              # Internal shared code (not importable externally)
+│   └── testutil/          # Testing utilities
+├── exercises/             # Hands-on practice exercises
+│   ├── level-1-input-output/
+│   │   ├── README.md      # Exercise description and objectives
+│   │   ├── starter/       # Starter code for students
+│   │   │   ├── go.mod
+│   │   │   └── cmd/...
+│   │   ├── solution/      # Reference solution (private branch or restricted)
+│   │   ├── tests/         # Unit and integration tests
+│   │   └── exercise.yaml  # Metadata: objectives, steps, hints
+│   ├── level-2-auth/
+│   │   └── ...
+│   ├── level-3-rbac/
+│   │   └── ...
+│   ├── level-4-crypto/
+│   │   └── ...
+│   └── level-5-database/
+│       └── ...
+├── examples/              # Small runnable examples and reference implementations
+├── playground/            # Ephemeral experiments and templates for students
+└── security/              # Security policies, threat models, checklist.md
 ```
+
+### Directory Purpose
+
+- **`exercises/`**: Progressive learning modules organized by difficulty level
+- **`pkg/`**: Shared, reusable packages that demonstrate secure coding patterns
+- **`internal/`**: Internal utilities not meant for external consumption
+- **`examples/`**: Quick reference implementations for common security patterns
+- **`playground/`**: Sandbox environment for experimentation
+- **`infra/`**: Infrastructure setup for deploying secure applications
+- **`security/`**: Security documentation, policies, and checklists
 
 ## Contributing
 
