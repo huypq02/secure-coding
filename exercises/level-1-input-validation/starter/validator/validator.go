@@ -8,6 +8,10 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	MaxEmailLength = 254
+)
+
 // Allow-list regexp for username
 var (
 	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_\-.]{2,31}$`)
@@ -15,17 +19,23 @@ var (
 
 // Validate email by following RFC standard
 func ValidateEmail(email string) error {
+
+	// Check length of email
+	if len(email) == 0 || len(email) > MaxEmailLength {
+		return errors.New("invalid email")
+	}
+
 	// Sanitize the input of email
 	email = SanitizeInput(email)
 
 	// Parse the mail format
-	mail, err := mail.ParseAddress(email)
+	addr, err := mail.ParseAddress(email)
 	if err != nil {
-		return errors.New("invalid email format")
+		return errors.New("invalid email")
 	}
 
 	// Remove special characters in the mail
-	if strings.ContainsAny(mail.Address, "<>()[]\\,;:\" \t\r\n") {
+	if strings.ContainsAny(addr.Address, "<>()[]\\,;:\" \t\r\n") {
 		return errors.New("email contains special characters")
 	}
 
@@ -51,6 +61,9 @@ func SanitizeInput(input string) string {
 	// Remove other characters unexpectedly
 	input = strings.Map(func(r rune) rune {
 		if r < 0x20 && r != '\n' && r != '\r' && r != '\t' {
+			return -1
+		}
+		if r == 0x7F { // DEL character
 			return -1
 		}
 		return r
