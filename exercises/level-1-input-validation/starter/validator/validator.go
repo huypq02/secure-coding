@@ -9,7 +9,9 @@ import (
 )
 
 const (
-	MaxEmailLength = 254
+	MaxEmailLength      = 254
+	MaxLocalPartLength  = 64
+	MaxDomainPartLength = 190
 )
 
 // Allow-list regexp for username
@@ -20,7 +22,7 @@ var (
 // Validate email by following RFC standard
 func ValidateEmail(email string) error {
 
-	// Check length of email
+	// Validate the length of email
 	if len(email) == 0 || len(email) > MaxEmailLength {
 		return errors.New("invalid email")
 	}
@@ -34,9 +36,40 @@ func ValidateEmail(email string) error {
 		return errors.New("invalid email")
 	}
 
+	email = addr.Address
+
 	// Remove special characters in the mail
-	if strings.ContainsAny(addr.Address, "<>()[]\\,;:\" \t\r\n") {
-		return errors.New("email contains special characters")
+	if strings.ContainsAny(email, "<>()[]\\,;:\" \t\r\n") {
+		return errors.New("invalid email")
+	}
+
+	// Split and validate email parts
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return errors.New("invalid email")
+	}
+
+	localPart := parts[0]
+	domainPart := parts[1]
+
+	// Validate the length of the local part
+	if len(localPart) == 0 || len(localPart) > MaxLocalPartLength {
+		return errors.New("invalid email")
+	}
+	// Validate the length of the domain part
+	if len(domainPart) == 0 || len(domainPart) > MaxDomainPartLength {
+		return errors.New("invalid email")
+	}
+
+	// Domain must contain at least one dot
+	if !strings.Contains(domainPart, ".") {
+		return errors.New("invalid email")
+	}
+
+	// Domain must not start/end with dot or hyphen
+	if strings.HasPrefix(domainPart, ".") || strings.HasSuffix(domainPart, ".") ||
+		strings.HasPrefix(domainPart, "-") || strings.HasSuffix(domainPart, "-") {
+		return errors.New("invalid email")
 	}
 
 	return nil
