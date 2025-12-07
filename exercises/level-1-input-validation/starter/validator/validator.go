@@ -12,6 +12,7 @@ const (
 	MaxEmailLength      = 254
 	MaxLocalPartLength  = 64
 	MaxDomainPartLength = 190
+	MaxUsernameLength   = 100
 )
 
 // Allow-list regexp for username
@@ -22,7 +23,7 @@ var (
 // Validate email by following RFC standard
 func ValidateEmail(email string) error {
 
-	// Validate the length of email
+	// Validate the length of email (DoS protection)
 	if len(email) == 0 || len(email) > MaxEmailLength {
 		return errors.New("invalid email")
 	}
@@ -72,12 +73,39 @@ func ValidateEmail(email string) error {
 		return errors.New("invalid email")
 	}
 
+	// Check for consecutive dots
+	if strings.Contains(email, "..") {
+		return errors.New("invalid email")
+	}
+
 	return nil
 }
 
-// func ValidateUsername(email string) error {
+func ValidateUsername(username string) error {
 
-// }
+	// Validate the length of username (DoS protection)
+	if len(username) > MaxUsernameLength {
+		return errors.New("invalid username")
+	}
+
+	// Validate username (business rule)
+	if !usernameRegex.MatchString(username) {
+		return errors.New("invalid username")
+	}
+
+	// Sanitize the input of username
+	username = SanitizeInput(username)
+
+	invalidPatterns := []string{"__", "..", "--"}
+	for _, pattern := range invalidPatterns {
+		// Check for invalid patterns
+		if strings.Contains(username, pattern) {
+			return errors.New("invalid username")
+		}
+	}
+
+	return nil
+}
 
 // func ValidateAge(age int) error {
 
@@ -91,16 +119,28 @@ func SanitizeInput(input string) string {
 	if !utf8.ValidString(input) {
 		input = strings.ToValidUTF8(input, "")
 	}
+
 	// Remove other characters unexpectedly
 	input = strings.Map(func(r rune) rune {
-		if r < 0x20 && r != '\n' && r != '\r' && r != '\t' {
+		// Remove control chars (U+0000 to U+001F, U+007F to U+009F)
+		if r < 0x20 || (r >= 0x7F && r <= 0x9F) {
 			return -1
 		}
-		if r == 0x7F { // DEL character
+
+		// Remove zero-width chars
+		if r == 0x200B || r == 0x200C || r == 0x200D || r == 0xFEFF {
+			return -1
+		}
+
+		// Remove directional overrides
+		if r >= 0x202A && r <= 0x202E {
 			return -1
 		}
 		return r
 	}, input)
+
+	// Trim leading/trailing whitespace
+	input = strings.TrimSpace(input)
 
 	return input
 }
